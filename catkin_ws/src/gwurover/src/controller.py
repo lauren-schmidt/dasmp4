@@ -6,6 +6,11 @@ from gwurover.msg import PID
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
 from gwurover.srv import *
+import RPi.GPIO as GPIO
+
+# Pin setup
+TRIG = 17
+ECHO = 18
 
 import os 
 import cv2
@@ -114,6 +119,9 @@ def detect_traffic_light_color(frame):
     # Upper red range
     red_lower2 = np.array([175, 160, 160])
     red_upper2 = np.array([180, 255, 255])
+    
+    # Yellow range 
+    yellow_lower, yellow_upper = np.array([15, 100, 100]), np.array([35, 255, 255])
 
     # Green range
     green_lower = np.array([36, 80, 80])
@@ -124,30 +132,30 @@ def detect_traffic_light_color(frame):
     mask2 = cv2.inRange(hsv, red_lower2, red_upper2)
     red_mask = cv2.bitwise_or(mask1, mask2)
     green_mask = cv2.inRange(hsv, green_lower, green_upper)
-
+    yellow_mask = cv2.inRange(hsv, yellow_lower, yellow_upper)
     # Check for the presence of each color
     if cv2.countNonZero(red_mask) > 0:
-        
         return 'red'
+    elif cv2.countNonZero(yellow_mask) > 0:
+        return 'yellow'
     elif cv2.countNonZero(green_mask) > 0:
         return 'green'
     else:
         return 'unknown'
 
+def ultrasound_reading():
+    GPIO.output(TRIG, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG, False)
 
-# def ultrasound_reading():
-#     GPIO.output(TRIG, True)
-#     time.sleep(0.00001)
-#     GPIO.output(TRIG, False)
+    while GPIO.input(ECHO) == 0:
+        start_time = time.time()
+    while GPIO.input(ECHO) == 1:
+        end_time = time.time()
 
-#     while GPIO.input(ECHO) == 0:
-#         start_time = time.time()
-#     while GPIO.input(ECHO) == 1:
-#         end_time = time.time()
-
-#     duration = end_time - start_time
-#     distance = (duration * 34300) / 2
-#     return distance
+    duration = end_time - start_time
+    distance = (duration * 34300) / 2
+    return distance
 
 
 def algo():
@@ -181,6 +189,7 @@ def algo():
                     counter += 1
                     sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign 
                     continue
+               
                 
 
                 # Capture for traffic light detection 
@@ -191,34 +200,34 @@ def algo():
                 color = detect_traffic_light_color(frame)
 
 
-                if color != 'unknown':
-                    while color != 'green':
+                while color == 'red':
                         
-                        ret, frame = cap.read()
-                        if not ret:break
-                        frame = cv2.resize(frame, (640, 480))
-                        color = detect_traffic_light_color(frame)
+                    ret, frame = cap.read()
+                    if not ret:break
+                    frame = cv2.resize(frame, (640, 480))
+                    color = detect_traffic_light_color(frame)
 
                         # Loop every 0.1 seconds until the traffic light is green 
-                        speed_pid_value = 0
+                    speed_pid_value = 0
 
-                        speed_pub.publish(map(0,-1000,1000,100,-100))
-                        rospy.loginfo(f"{color} traffic light detected: Stopping rover")
+                    speed_pub.publish(map(0,-1000,1000,100,-100))
+                    rospy.loginfo(f"{color} traffic light detected: Stopping rover")
                     
-                        sleep(0.1)
-                    
-                    cap.release()
-                    cv2.destroyAllWindows()
+                    sleep(0.2)
+                rospy.loginfo(f"{color} traffic light detected: Starting rover")
 
-                    counter += 1
-                    rospy.loginfo("GREEN traffic light detected: Continuing rover")
-                    continue
+                counter += 1
 
                 cap.release()
                 cv2.destroyAllWindows()
-                # object_detected = ultrasound_reading()
-                # if object_detected < 5:
-                #     time.sleep(10)
+                # object detection code
+		object_detected = ultrasound_reading()
+                if object_detected < 5: #if we have an object closer than 5 cm, stop and wait for object to move
+                    while ultrasound_reading() < 5:
+                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                        speed_pid_value = 0
+                        speed_pub.publish(map(0,-1000,1000,100,-100))
+                        sleep(0.2)
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
