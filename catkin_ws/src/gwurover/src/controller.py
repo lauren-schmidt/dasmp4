@@ -99,7 +99,7 @@ def detect_traffic_light_color(frame):
 
     # Detect traffic lights
     traffic_lights = traffic_light_cascade.detectMultiScale(gray_img, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-
+    roi = 0
     for x, y, w, h in traffic_lights:
         roi = frame[y:y+h, x:x+w]
 
