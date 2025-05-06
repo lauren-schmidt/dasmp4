@@ -193,23 +193,20 @@ def algo():
                 # Capture for traffic light detection
                 cap = cv2.VideoCapture(0)
                 ret, frame = cap.read()
-                if not ret:
-		    continue
+                if not ret:continue
                 frame = cv2.resize(frame, (640, 480))
                 color = detect_traffic_light_color(frame)
                 if color == 'red':
                     while color == 'red':
-	                ret, frame = cap.read()
-        	        if not ret:break
-                	frame = cv2.resize(frame, (640, 480))
-                    	color = detect_traffic_light_color(frame)
-
-                     	# Loop every 0.1 seconds until the traffic light is green
-                    	speed_pid_value = 0
-
-                    	speed_pub.publish(map(0,-1000,1000,100,-100))
-                    	rospy.loginfo(f"{color} traffic light detected: Stopping rover")
-                    	sleep(0.2)
+                        ret, frame = cap.read()
+                        if not ret:break
+                        frame = cv2.resize(frame, (640, 480))
+                        color = detect_traffic_light_color(frame)
+                        # Loop every 0.1 seconds until the traffic light is green
+                        speed_pid_value = 0
+                        speed_pub.publish(map(0,-1000,1000,100,-100))
+                        rospy.loginfo(f"{color} traffic light detected: Stopping rover")
+                        sleep(0.2)
                 rospy.loginfo(f"{color} traffic light detected: Starting rover")
                 cap.release()
                 cv2.destroyAllWindows()
@@ -217,10 +214,10 @@ def algo():
 
                 #if we have an object closer than 5 cm, stop and wait for object to move
                 while ultrasound_reading() < 150:
-               	   rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                   speed_pid_value = 0
-                   speed_pub.publish(map(0,-1000,1000,100,-100))
-                   sleep(0.2)
+                    rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                    speed_pid_value = 0
+                    speed_pub.publish(map(0,-1000,1000,100,-100))
+                    sleep(0.2)
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
