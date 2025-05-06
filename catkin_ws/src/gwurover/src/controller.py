@@ -172,9 +172,6 @@ def algo():
 
     # Controller main loop, this is where the rover is controlled from
     while not rospy.is_shutdown():
-        ret, frame = cap.read()
-        if not ret:
-            print("Error: no ret")
         if rcin_msg.ch6 > 1000: # SF Key is UP (Means: start running in autonomous mode)
 
             # MP4-TODO:
@@ -184,7 +181,9 @@ def algo():
             # else: increase counter
 
             if counter % 400 == 0:
-                
+                ret, frame = cap.read()
+                if not ret:
+                    print("Error: no ret")
                 if ret and stop_sign_detected(cap):
                     # If stop sign is detected, we stop the rover
                     speed_pid_value = 0
