@@ -208,17 +208,17 @@ def algo():
                         sleep(0.2)
                     rospy.loginfo(f"{color} traffic light detected: Starting rover")
                 
-                # object detection code
-                object_detected = ultrasound_reading()
-                if object_detected < 150:
-                    rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                    while object_detected < 150:
-                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                        speed_pid_value = 0
-                        speed_pub.publish(map(0,-1000,1000,100,-100))
-                        object_detected = ultrasound_reading()
-                        sleep(0.2)
-                rospy.loginfo(f"object no longer detected: starting rover")
+                # # object detection code
+                # object_detected = ultrasound_reading()
+                # if object_detected < 150:
+                #     rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                #     while object_detected < 150:
+                #         rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                #         speed_pid_value = 0
+                #         speed_pub.publish(map(0,-1000,1000,100,-100))
+                #         object_detected = ultrasound_reading()
+                #         sleep(0.2)
+                #     rospy.loginfo(f"object no longer detected: starting rover")
                 counter += 1
 
                 cap.release()
