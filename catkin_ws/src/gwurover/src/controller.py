@@ -156,11 +156,6 @@ def ultrasound_reading():
     distance = (duration * 34300) / 2
     return distance
 
-# call cap once here to avoid resource wasting
-cap = cv2.VideoCapture(0)
-if not cap.isOpened():
-    rospy.loginfo("Initial: Camera failed to open")
-print("Initial: camera is able to open")
 
 def algo():
     rate = rospy.Rate(200) # ~200hz
@@ -181,10 +176,12 @@ def algo():
             # else: increase counter
 
             if counter % 400 == 0:
+                # calling once here to avoid resource wasting
+                cap = cv2.VideoCapture(0)
                 ret, frame = cap.read()
                 if not ret:
                     print("Error: no ret")
-                if ret and stop_sign_detected(cap):
+                if stop_sign_detected():
                     # If stop sign is detected, we stop the rover
                     speed_pid_value = 0
                     steer_pid_value = 0
@@ -195,12 +192,13 @@ def algo():
                     # continue
                     
                 # Capture for traffic light detection
-                # ret, frame = cap.read()
-                # if not ret:continue
                 frame = cv2.resize(frame, (640, 480))
                 color = detect_traffic_light_color(frame)
-                if ret and color == 'red':
+                if color == 'red':
                     while color == 'red':
+                        cap = cv2.VideoCapture(0)
+                        if not cap.isOpened():
+                            rospy.loginfo("In loop to check for red light: Camera failed to open")
                         ret, frame = cap.read()
                         if not ret:
                             print("Error: no ret")
@@ -212,8 +210,8 @@ def algo():
                         rospy.loginfo(f"{color} traffic light detected: Stopping rover")
                         sleep(0.2)
                 # rospy.loginfo(f"{color} traffic light detected: Starting rover")
-                # cap.release()
-                # cv2.destroyAllWindows()
+                cap.release()
+                cv2.destroyAllWindows()
                 # object detection code
 
                 #if we have an object closer than 5 cm, stop and wait for object to move
