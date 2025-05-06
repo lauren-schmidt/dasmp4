@@ -69,7 +69,7 @@ def t265_velocity_callback(data):
     sensor_vel_msg = data
 
 # Detect a stop sign
-def stop_sign_detected():
+def stop_sign_detected(cap):
     cascade_path = os.path.join(os.path.dirname(__file__), 'stopsign_good.xml')
 
     stop_sign_cascade = cv2.CascadeClassifier(cascade_path)
