@@ -84,8 +84,8 @@ def stop_sign_detected(frame):
     stop_signs = stop_sign_cascade.detectMultiScale(gray_img, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
     if len(stop_signs) > 0:
-        cap.release()
-        cv2.destroyAllWindows()
+        # cap.release()
+        # cv2.destroyAllWindows()
         return True
     return False
 
