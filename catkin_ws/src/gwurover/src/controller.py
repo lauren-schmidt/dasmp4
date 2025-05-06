@@ -177,7 +177,7 @@ def algo():
                 ret, frame = cap.read()
                 if not ret:
                     print("ret failed")
-                    
+                    continue
                 if stop_sign_detected(frame):
                     # If stop sign is detected, we stop the rover
                     speed_pub.publish(map(0,-1000,1000,100,-100))
@@ -192,6 +192,7 @@ def algo():
                         ret, frame = cap.read()
                         if not ret:
                             print("no ret")
+                            continue
                         frame = cv2.resize(frame, (640, 480))
                         color = detect_traffic_light_color(frame)
                         # Loop every 0.2 seconds until the traffic light is green
