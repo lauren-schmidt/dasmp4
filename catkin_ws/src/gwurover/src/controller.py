@@ -150,7 +150,7 @@ def ultrasound_reading():
     distance = (duration * 34300) / 2
     return distance
 
-cap = cv2.VideoCapture(0)
+
 
 def algo():
     rate = rospy.Rate(200) # ~200hz
@@ -173,7 +173,7 @@ def algo():
 
             if counter % 400 == 0:
                 # putting code here to only get called once to save resources
-                
+                cap = cv2.VideoCapture(0)
                 ret, frame = cap.read()
                 if not ret:
                     print("ret failed")
