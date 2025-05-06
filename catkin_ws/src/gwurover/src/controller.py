@@ -99,9 +99,15 @@ def detect_traffic_light_color(frame):
 
     # Detect traffic lights
     traffic_lights = traffic_light_cascade.detectMultiScale(gray_img, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-    roi = 0
+    
+    if len(traffic_lights) == 0:
+        return None
     for x, y, w, h in traffic_lights:
         roi = frame[y:y+h, x:x+w]
+        
+    # guard against bad ROI
+    if roi is None or roi.size == 0:
+        return None
 
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
     # Define color ranges for red, green, and orange
