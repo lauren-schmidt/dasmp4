@@ -180,37 +180,37 @@ def algo():
 
             if counter % 400 == 0:
 
-                # if stop_sign_detected():
-                #     # If stop sign is detected, we stop the rover
-                #     speed_pid_value = 0
-                #     steer_pid_value = 0
-                #     steer_pub.publish(map(0,-1000,1000,-100,100))
-                #     speed_pub.publish(map(0,-1000,1000,100,-100))
-                #     rospy.loginfo("Stop sign detected: Stopping rover")
-                #     sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
-                #     continue
+                if stop_sign_detected():
+                    # If stop sign is detected, we stop the rover
+                    speed_pid_value = 0
+                    steer_pid_value = 0
+                    steer_pub.publish(map(0,-1000,1000,-100,100))
+                    speed_pub.publish(map(0,-1000,1000,100,-100))
+                    rospy.loginfo("Stop sign detected: Stopping rover")
+                    sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
+                    continue
 
-                # # Capture for traffic light detection
-                # cap = cv2.VideoCapture(0)
-                # ret, frame = cap.read()
-                # if not ret:continue
-                # frame = cv2.resize(frame, (640, 480))
-                # color = detect_traffic_light_color(frame)
-                # if color == 'red':
-                #     while color == 'red':
-                #         ret, frame = cap.read()
-                #         if not ret:break
-                #         frame = cv2.resize(frame, (640, 480))
-                #         color = detect_traffic_light_color(frame)
-                #         # Loop every 0.1 seconds until the traffic light is green
-                #         speed_pid_value = 0
-                #         speed_pub.publish(map(0,-1000,1000,100,-100))
-                #         rospy.loginfo(f"{color} traffic light detected: Stopping rover")
-                #         sleep(0.2)
-                # rospy.loginfo(f"{color} traffic light detected: Starting rover")
-                # cap.release()
-                # cv2.destroyAllWindows()
-                # object detection code
+                # Capture for traffic light detection
+                cap = cv2.VideoCapture(0)
+                ret, frame = cap.read()
+                if not ret:continue
+                frame = cv2.resize(frame, (640, 480))
+                color = detect_traffic_light_color(frame)
+                if color == 'red':
+                    while color == 'red':
+                        ret, frame = cap.read()
+                        if not ret:break
+                        frame = cv2.resize(frame, (640, 480))
+                        color = detect_traffic_light_color(frame)
+                        # Loop every 0.1 seconds until the traffic light is green
+                        speed_pid_value = 0
+                        speed_pub.publish(map(0,-1000,1000,100,-100))
+                        rospy.loginfo(f"{color} traffic light detected: Stopping rover")
+                        sleep(0.2)
+                rospy.loginfo(f"{color} traffic light detected: Starting rover")
+                cap.release()
+                cv2.destroyAllWindows()
+                object detection code
 
                 #if we have an object closer than 5 cm, stop and wait for object to move
                 object_detected = ultrasound_reading()
