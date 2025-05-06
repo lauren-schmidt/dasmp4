@@ -69,13 +69,15 @@ def t265_velocity_callback(data):
     sensor_vel_msg = data
 
 # Detect a stop sign
-def stop_sign_detected(cap):
+def stop_sign_detected():
     cascade_path = os.path.join(os.path.dirname(__file__), 'stopsign_good.xml')
 
     stop_sign_cascade = cv2.CascadeClassifier(cascade_path)
 
+    cap = cv2.VideoCapture(0)
+
     if not cap.isOpened():
-        print("Error in stop_sign_detected: Could not open camera.")
+        print("Error: Could not open camera.")
         sys.exit()
     ret, frame = cap.read()
     if not ret:
@@ -167,6 +169,7 @@ def algo():
 
     # Controller main loop, this is where the rover is controlled from
     while not rospy.is_shutdown():
+
         if rcin_msg.ch6 > 1000: # SF Key is UP (Means: start running in autonomous mode)
 
             # MP4-TODO:
@@ -176,12 +179,8 @@ def algo():
             # else: increase counter
 
             if counter % 400 == 0:
-                # calling once here to avoid resource wasting
-                cap = cv2.VideoCapture(0)
-                ret, frame = cap.read()
-                if not ret:
-                    print("Error: no ret")
-                if stop_sign_detected(cap):
+
+                if stop_sign_detected():
                     # If stop sign is detected, we stop the rover
                     speed_pid_value = 0
                     steer_pid_value = 0
@@ -189,16 +188,18 @@ def algo():
                     speed_pub.publish(map(0,-1000,1000,100,-100))
                     rospy.loginfo("Stop sign detected: Stopping rover")
                     sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
-                    # continue
-                    
+                    continue
+
                 # Capture for traffic light detection
+                cap = cv2.VideoCapture(0)
+                ret, frame = cap.read()
+                if not ret:continue
                 frame = cv2.resize(frame, (640, 480))
                 color = detect_traffic_light_color(frame)
                 if color == 'red':
                     while color == 'red':
                         ret, frame = cap.read()
-                        if not ret:
-                            print("Error: no ret")
+                        if not ret:break
                         frame = cv2.resize(frame, (640, 480))
                         color = detect_traffic_light_color(frame)
                         # Loop every 0.1 seconds until the traffic light is green
@@ -206,25 +207,26 @@ def algo():
                         speed_pub.publish(map(0,-1000,1000,100,-100))
                         rospy.loginfo(f"{color} traffic light detected: Stopping rover")
                         sleep(0.2)
-                    rospy.loginfo(f"{color} traffic light detected: Starting rover")
-                
-                # # object detection code
-                # object_detected = ultrasound_reading()
-                # if object_detected < 150:
-                #     rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                #     while object_detected < 150:
-                #         rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                #         speed_pid_value = 0
-                #         speed_pub.publish(map(0,-1000,1000,100,-100))
-                #         object_detected = ultrasound_reading()
-                #         sleep(0.2)
-                #     rospy.loginfo(f"object no longer detected: starting rover")
-                counter += 1
-
+                rospy.loginfo(f"{color} traffic light detected: Starting rover")
                 cap.release()
                 cv2.destroyAllWindows()
+                # object detection code
+
+                #if we have an object closer than 5 cm, stop and wait for object to move
+                object_detected = ultrasound_reading()
+                if object_detected < 150:
+                    rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                    while object_detected < 150:
+                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                        speed_pid_value = 0
+                        speed_pub.publish(map(0,-1000,1000,100,-100))
+                        object_detected = ultrasound_reading()
+                        sleep(0.2)
+                rospy.loginfo(f"object no longer detected: starting rover")
+            counter += 1
+
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
-            
+
 
             # The two variables below are used to figure out the angle and distance between the waypoint and the rover's position
             # This helps the PID to figure out how to steer the rover, you'll need to figure out the angle and distance
@@ -232,14 +234,14 @@ def algo():
             # MP4-TODO: Find out the angle between the waypoint and the rover's position
             # You're given : (waypoint_po_x, waypoint_po_y) & (sensor_pos_msg.position.x, sensor_pos_msg.position.z)
             theta = 0 # Figure it out and reaplce the zero with the angle's formula
-            
+
             diffx = waypoint_po_x - sensor_pos_msg.position.x
             diffy = waypoint_po_y - sensor_pos_msg.position.z
 
             theta = math.atan2(diffy, diffx) * (180/math.pi)
 
 
-            
+
             # MP4-TODO: Find out the distance between the waypoint and the rover's position
             # You're given : (waypoint_po_x, waypoint_po_y) & (sensor_pos_msg.position.x, sensor_pos_msg.position.z)
             dist = 0 # Figure it out and reaplce the zero with the distance's formula
@@ -274,14 +276,14 @@ def algo():
 
             if dist < 0.25: # If we're around 20cm away from the desired postion, we fetch the next weaypoint
                 # MP4-TODO: Play with the parameter above to to tune the the algorithm
-                
+
                 # Get next waypoint
                 resp = get_waypoint(traj_shape)
                 waypoint_po_x = resp.x
                 waypoint_po_y = resp.y
                 print('New point recived:',waypoint_po_x,waypoint_po_y)
 
-            
+
             (roll, pitch, yaw) = euler_from_quaternion (
                 [
                     sensor_pos_msg.orientation.x,
@@ -298,8 +300,8 @@ def algo():
             #   -> pitch is actually yaw (the turning ange)
             #   -> yaw is actually roll
             #   -> roll is actually pitch (irrelevent)
-            
-            
+
+
             # Here we're trying to figure out the speed of the rover in x direction
             # It's speed in x direction depends on both x and y and you should multiply both with proper trig ratios to account for the components
             # The variables you should work with are: sensor_vel_msg.linear.z, pitch & sensor_vel_msg.linear.x, pitch
@@ -310,9 +312,9 @@ def algo():
 
             pitch = -pitch * (180/math.pi)
             yaw = yaw * (180/math.pi)
-            
+
             if abs(yaw) > 100:pitch = (180 - abs(pitch)) * abs(pitch)/pitch
-            
+
             print(
                 "Pos-Z(x): {:3.1f}, ".format(sensor_pos_msg.position.z),
                 "Pos-X(y): {:3.1f}, ".format(-sensor_pos_msg.position.x),
@@ -320,7 +322,7 @@ def algo():
                 "Pitch: {:3.1f}, ".format(pitch),
                 end='\r'
             )
-            
+
             # The neg variable is used to determine the direction of the steering angle
             if abs(pitch) > 90 and abs(theta) > 90 and pitch*theta < 0: neg = -1
             else: neg = 1
@@ -339,7 +341,7 @@ def algo():
             # If the rover goes too fast, it might not be able to turn in time and will overshoot the waypoint
             if linear_pos_pid_value >= 0:
                     speed_pid_value = speed_pid.update_pid(x_speed,0.15)
-            
+
             # Update the pid value for the steering angle and see what it decides to do next
             steer_pid_value = steer_pid.update_pid(pitch,theta)
 
@@ -379,7 +381,7 @@ if __name__ == '__main__':
         rospy.Subscriber("rcinput/data", RCIN, rcin_callback)
         rospy.Subscriber("realsense/pose", Pose, t265_position_callback)
         rospy.Subscriber("realsense/velocity", Twist, t265_velocity_callback)
-        
+
         # All the topics it publishes (Just speed and steering angle)
         # The controller node is pulishing the steering angle and speed to the controller node
         # to which the rcout node is subscribed to (See def listener(): in rcout.py)
@@ -388,27 +390,27 @@ if __name__ == '__main__':
 
         # // I'm planning to use this in future, dw abt it for now (irrelavent for MP4)
         sensor_reset_pub = rospy.Publisher("realsense/reset", String, queue_size=10)
-        
+
         rospy.wait_for_service('trajectory/next_waypoint')
         get_waypoint = rospy.ServiceProxy('trajectory/next_waypoint', WayPoint)
-        
+
         # Initializing and setting the gains for steering PID
         # All PIDs are instances of the same PID class but control different params and have different gains
         steer_pid = pid(50,0.01,5)
         steer_pid.set_pid_limit(1000)
         steer_pid.set_I_limit(100)
-        
+
         # Initializing and setting the gains for PID for the linear position
         # All PIDs are instances of the same PID class but control different params and have different gains
         linear_pos_pid = pid(1.0,0,0.1)
         linear_pos_pid.set_pid_limit(0.4)
-        
+
         # Initializing and setting the gains for PID for the speed
         # All PIDs are instances of the same PID class but control different params and have different gains
         speed_pid = pid(200,0,1500,offset=200)
         speed_pid.set_pid_limit(1000)
         speed_pid.set_I_limit(100)
-        
+
         # Run the main loop when exerything is setup
         algo()
     except rospy.ROSInterruptException:

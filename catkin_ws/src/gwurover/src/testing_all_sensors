@@ -158,7 +158,7 @@ def ultrasound_reading():
 
 
 def algo():
-    rate = rospy.Rate(200) # ~200hz
+    # rate = rospy.Rate(200) # ~200hz
     waypoint_po_x = 0
     waypoint_po_y = 0
     sensor_reset_key_on_flag = False
@@ -183,12 +183,7 @@ def algo():
                     print("Error: no ret")
                 if stop_sign_detected(cap):
                     # If stop sign is detected, we stop the rover
-                    speed_pid_value = 0
-                    steer_pid_value = 0
-                    steer_pub.publish(map(0,-1000,1000,-100,100))
-                    speed_pub.publish(map(0,-1000,1000,100,-100))
-                    rospy.loginfo("Stop sign detected: Stopping rover")
-                    sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
+                    print("Stop sign detected: Stopping rover")
                     # continue
                     
                 # Capture for traffic light detection
@@ -363,34 +358,34 @@ def algo():
 
 if __name__ == '__main__':
     try:
-        rcin_msg = RCIN()
+        # rcin_msg = RCIN()
         pid_param_msg = PID()
         sensor_pos_msg = Pose()
         sensor_vel_msg = Twist()
 
-        rospy.init_node('controller', anonymous=True)
+        # rospy.init_node('controller', anonymous=True)
 
         # All the topics controller subscribes to
         # Arguments are:
         # Topic name (Format: "[node_name]/[topic_name]")
         # Data class (type of the message)
         # Callback function (the function that will be called when the data is received, it'll update the object asyncronously)
-        rospy.Subscriber("controller/pid_params", PID, pid_param_callback)
-        rospy.Subscriber("rcinput/data", RCIN, rcin_callback)
-        rospy.Subscriber("realsense/pose", Pose, t265_position_callback)
-        rospy.Subscriber("realsense/velocity", Twist, t265_velocity_callback)
+        # rospy.Subscriber("controller/pid_params", PID, pid_param_callback)
+        # rospy.Subscriber("rcinput/data", RCIN, rcin_callback)
+        # rospy.Subscriber("realsense/pose", Pose, t265_position_callback)
+        # rospy.Subscriber("realsense/velocity", Twist, t265_velocity_callback)
         
-        # All the topics it publishes (Just speed and steering angle)
-        # The controller node is pulishing the steering angle and speed to the controller node
-        # to which the rcout node is subscribed to (See def listener(): in rcout.py)
-        steer_pub = rospy.Publisher("controller/steer", Float32, queue_size=10)
-        speed_pub = rospy.Publisher("controller/speed", Float32, queue_size=10)
+        # # All the topics it publishes (Just speed and steering angle)
+        # # The controller node is pulishing the steering angle and speed to the controller node
+        # # to which the rcout node is subscribed to (See def listener(): in rcout.py)
+        # steer_pub = rospy.Publisher("controller/steer", Float32, queue_size=10)
+        # speed_pub = rospy.Publisher("controller/speed", Float32, queue_size=10)
 
-        # // I'm planning to use this in future, dw abt it for now (irrelavent for MP4)
-        sensor_reset_pub = rospy.Publisher("realsense/reset", String, queue_size=10)
+        # # // I'm planning to use this in future, dw abt it for now (irrelavent for MP4)
+        # sensor_reset_pub = rospy.Publisher("realsense/reset", String, queue_size=10)
         
-        rospy.wait_for_service('trajectory/next_waypoint')
-        get_waypoint = rospy.ServiceProxy('trajectory/next_waypoint', WayPoint)
+        # rospy.wait_for_service('trajectory/next_waypoint')
+        # get_waypoint = rospy.ServiceProxy('trajectory/next_waypoint', WayPoint)
         
         # Initializing and setting the gains for steering PID
         # All PIDs are instances of the same PID class but control different params and have different gains
