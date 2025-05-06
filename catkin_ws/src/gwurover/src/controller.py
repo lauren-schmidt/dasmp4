@@ -188,12 +188,12 @@ def algo():
                     speed_pub.publish(map(0,-1000,1000,100,-100))
                     rospy.loginfo("Stop sign detected: Stopping rover")
                     sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
-                    continue
 
                 # Capture for traffic light detection
                 cap = cv2.VideoCapture(0)
                 ret, frame = cap.read()
-                if not ret:continue
+                if not ret:
+                    print("")
                 frame = cv2.resize(frame, (640, 480))
                 color = detect_traffic_light_color(frame)
                 if color == 'red':
@@ -213,16 +213,16 @@ def algo():
                 # object detection code
 
                 #if we have an object closer than 5 cm, stop and wait for object to move
-                object_detected = ultrasound_reading()
-                if object_detected < 150:
-                    rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                    while object_detected < 150:
-                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                        speed_pid_value = 0
-                        speed_pub.publish(map(0,-1000,1000,100,-100))
-                        object_detected = ultrasound_reading()
-                        sleep(0.2)
-                rospy.loginfo(f"object no longer detected: starting rover")
+                # object_detected = ultrasound_reading()
+                # if object_detected < 150:
+                #     rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                #     while object_detected < 150:
+                #         rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                #         speed_pid_value = 0
+                #         speed_pub.publish(map(0,-1000,1000,100,-100))
+                #         object_detected = ultrasound_reading()
+                #         sleep(0.2)
+                # rospy.loginfo(f"object no longer detected: starting rover")
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
