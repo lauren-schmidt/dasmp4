@@ -180,44 +180,49 @@ def algo():
 
             if counter % 400 == 0:
 
-                if stop_sign_detected():
-                    # If stop sign is detected, we stop the rover
-                    speed_pid_value = 0
-                    steer_pid_value = 0
-                    steer_pub.publish(map(0,-1000,1000,-100,100))
-                    speed_pub.publish(map(0,-1000,1000,100,-100))
-                    rospy.loginfo("Stop sign detected: Stopping rover")
-                    sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
-                    continue
+                # if stop_sign_detected():
+                #     # If stop sign is detected, we stop the rover
+                #     speed_pid_value = 0
+                #     steer_pid_value = 0
+                #     steer_pub.publish(map(0,-1000,1000,-100,100))
+                #     speed_pub.publish(map(0,-1000,1000,100,-100))
+                #     rospy.loginfo("Stop sign detected: Stopping rover")
+                #     sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
+                #     continue
 
-                # Capture for traffic light detection
-                cap = cv2.VideoCapture(0)
-                ret, frame = cap.read()
-                if not ret:continue
-                frame = cv2.resize(frame, (640, 480))
-                color = detect_traffic_light_color(frame)
-                if color == 'red':
-                    while color == 'red':
-                        ret, frame = cap.read()
-                        if not ret:break
-                        frame = cv2.resize(frame, (640, 480))
-                        color = detect_traffic_light_color(frame)
-                        # Loop every 0.1 seconds until the traffic light is green
-                        speed_pid_value = 0
-                        speed_pub.publish(map(0,-1000,1000,100,-100))
-                        rospy.loginfo(f"{color} traffic light detected: Stopping rover")
-                        sleep(0.2)
-                rospy.loginfo(f"{color} traffic light detected: Starting rover")
-                cap.release()
-                cv2.destroyAllWindows()
+                # # Capture for traffic light detection
+                # cap = cv2.VideoCapture(0)
+                # ret, frame = cap.read()
+                # if not ret:continue
+                # frame = cv2.resize(frame, (640, 480))
+                # color = detect_traffic_light_color(frame)
+                # if color == 'red':
+                #     while color == 'red':
+                #         ret, frame = cap.read()
+                #         if not ret:break
+                #         frame = cv2.resize(frame, (640, 480))
+                #         color = detect_traffic_light_color(frame)
+                #         # Loop every 0.1 seconds until the traffic light is green
+                #         speed_pid_value = 0
+                #         speed_pub.publish(map(0,-1000,1000,100,-100))
+                #         rospy.loginfo(f"{color} traffic light detected: Stopping rover")
+                #         sleep(0.2)
+                # rospy.loginfo(f"{color} traffic light detected: Starting rover")
+                # cap.release()
+                # cv2.destroyAllWindows()
                 # object detection code
 
                 #if we have an object closer than 5 cm, stop and wait for object to move
-                while ultrasound_reading() < 150:
+                object_detected = ultrasound_reading()
+                if object_detected < 150:
                     rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                    speed_pid_value = 0
-                    speed_pub.publish(map(0,-1000,1000,100,-100))
-                    sleep(0.2)
+                    while object_detected < 150:
+                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                        speed_pid_value = 0
+                        speed_pub.publish(map(0,-1000,1000,100,-100))
+                        object_detected = ultrasound_reading()
+                        sleep(0.2)
+                rospy.loginfo(f"object no longer detected: starting rover")
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
@@ -268,7 +273,7 @@ def algo():
                     traj_shape = 'MP'
                     dist = 0
                     rospy.loginfo("Trajectory shape set to: MP")
-           
+
             if dist < 0.25: # If we're around 20cm away from the desired postion, we fetch the next weaypoint
                 # MP4-TODO: Play with the parameter above to to tune the the algorithm
                 
@@ -301,7 +306,7 @@ def algo():
             # It's speed in x direction depends on both x and y and you should multiply both with proper trig ratios to account for the components
             # The variables you should work with are: sensor_vel_msg.linear.z, pitch & sensor_vel_msg.linear.x, pitch
             # Make sure to use the absolute value when adding speeds
-            x_speed=  0 # // Figure it out and replace zero with equation
+            # x_speed=  0 # // Figure it out and replace zero with equation
 
             x_speed = abs(sensor_vel_msg.linear.z * math.cos(pitch) + sensor_vel_msg.linear.x * math.sin(pitch))
 
