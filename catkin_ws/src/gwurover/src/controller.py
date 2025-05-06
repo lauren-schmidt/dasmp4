@@ -74,8 +74,6 @@ def stop_sign_detected():
 
     stop_sign_cascade = cv2.CascadeClassifier(cascade_path)
 
-    cap = cv2.VideoCapture(0)
-
     if not cap.isOpened():
         print("Error: Could not open camera.")
         sys.exit()
@@ -158,6 +156,10 @@ def ultrasound_reading():
     distance = (duration * 34300) / 2
     return distance
 
+# call cap once here to avoid resource wasting
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    rospy.loginfo("Camera failed to open")
 
 def algo():
     rate = rospy.Rate(200) # ~200hz
@@ -180,7 +182,7 @@ def algo():
 
             if counter % 400 == 0:
 
-                if stop_sign_detected():
+                if stop_sign_detected(cap):
                     # If stop sign is detected, we stop the rover
                     speed_pid_value = 0
                     steer_pid_value = 0
@@ -188,12 +190,13 @@ def algo():
                     speed_pub.publish(map(0,-1000,1000,100,-100))
                     rospy.loginfo("Stop sign detected: Stopping rover")
                     sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
-                    continue
-
+                    # continue
+                    
                 # Capture for traffic light detection
-                cap = cv2.VideoCapture(0)
                 ret, frame = cap.read()
-                if not ret:continue
+                # if not ret:continue
+                if not ret:
+                    print("Error: could not read frame")
                 frame = cv2.resize(frame, (640, 480))
                 color = detect_traffic_light_color(frame)
                 if color == 'red':
@@ -210,7 +213,7 @@ def algo():
                 rospy.loginfo(f"{color} traffic light detected: Starting rover")
                 cap.release()
                 cv2.destroyAllWindows()
-                object detection code
+                # object detection code
 
                 #if we have an object closer than 5 cm, stop and wait for object to move
                 object_detected = ultrasound_reading()
