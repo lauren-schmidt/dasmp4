@@ -181,7 +181,7 @@ def algo():
                 ret, frame = cap.read()
                 if not ret:
                     print("Error: no ret")
-                if stop_sign_detected():
+                if stop_sign_detected(cap):
                     # If stop sign is detected, we stop the rover
                     speed_pid_value = 0
                     steer_pid_value = 0
