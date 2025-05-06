@@ -12,10 +12,15 @@ import RPi.GPIO as GPIO
 TRIG = 17
 ECHO = 18
 
-import os 
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
+
+import os
 import cv2
 import numpy as np
 import sys
+import time
 
 from time import sleep
 
@@ -30,9 +35,9 @@ def map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 # Call backs are basically functions you call to update some variables when an event happens
-# Here, we update  the `rcin_msg` object with the data received from the RCIN 
+# Here, we update  the `rcin_msg` object with the data received from the RCIN
 # This is done asyncronously
-def rcin_callback(data): 
+def rcin_callback(data):
     global rcin_msg
     rcin_msg = data
 
@@ -45,7 +50,6 @@ def pid_param_callback(data):
     if data.ki_steer >= 0: steer_pid.set_term_ki(data.ki_steer)
     if data.kd_steer >= 0: steer_pid.set_term_kd(data.kd_steer)
     if data.offset_steer >= 0: steer_pid.set_term_offset(data.offset_steer)
-    
     if data.kp_speed >= 0: speed_pid.set_term_kp(data.kp_speed)
     if data.ki_speed >= 0: speed_pid.set_term_ki(data.ki_speed)
     if data.kd_speed >= 0: speed_pid.set_term_kd(data.kd_speed)
@@ -64,7 +68,7 @@ def t265_velocity_callback(data):
     global sensor_vel_msg
     sensor_vel_msg = data
 
-# Detect a stop sign 
+# Detect a stop sign
 def stop_sign_detected():
     cascade_path = os.path.join(os.path.dirname(__file__), 'stopsign_good.xml')
 
@@ -75,12 +79,10 @@ def stop_sign_detected():
     if not cap.isOpened():
         print("Error: Could not open camera.")
         sys.exit()
-    
     ret, frame = cap.read()
     if not ret:
         print("Error: could not read frame")
-    
-    # Resize the ROI for faster processing 
+    # Resize the ROI for faster processing
     frame = cv2.resize(frame,(640, 480))
 
     # Convert to grayscale
@@ -93,7 +95,6 @@ def stop_sign_detected():
         cap.release()
         cv2.destroyAllWindows()
         return True
-    
     return False
 
 def detect_traffic_light_color(frame):
@@ -119,8 +120,8 @@ def detect_traffic_light_color(frame):
     # Upper red range
     red_lower2 = np.array([175, 160, 160])
     red_upper2 = np.array([180, 255, 255])
-    
-    # Yellow range 
+
+    # Yellow range
     yellow_lower, yellow_upper = np.array([15, 100, 100]), np.array([35, 255, 255])
 
     # Green range
@@ -141,11 +142,11 @@ def detect_traffic_light_color(frame):
     elif cv2.countNonZero(green_mask) > 0:
         return 'green'
     else:
-        return 'unknown'
+        return
 
 def ultrasound_reading():
     GPIO.output(TRIG, True)
-    time.sleep(0.00001)
+    sleep(0.00001)
     GPIO.output(TRIG, False)
 
     while GPIO.input(ECHO) == 0:
@@ -167,15 +168,15 @@ def algo():
     counter = 0
 
     # Controller main loop, this is where the rover is controlled from
-    while not rospy.is_shutdown():    
-        
+    while not rospy.is_shutdown():
+
         if rcin_msg.ch6 > 1000: # SF Key is UP (Means: start running in autonomous mode)
 
             # MP4-TODO:
             # Update flags detecting obstacles and stop signs/traffics light every few seconds
             # e.g.
             # if its__400_th_iteration: stop_flag = run_ultrasonic/traffioc_light
-            # else: increase counter    
+            # else: increase counter
 
             if counter % 400 == 0:
 
@@ -186,48 +187,40 @@ def algo():
                     steer_pub.publish(map(0,-1000,1000,-100,100))
                     speed_pub.publish(map(0,-1000,1000,100,-100))
                     rospy.loginfo("Stop sign detected: Stopping rover")
-                    counter += 1
-                    sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign 
+                    sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
                     continue
-               
-                
 
-                # Capture for traffic light detection 
+                # Capture for traffic light detection
                 cap = cv2.VideoCapture(0)
                 ret, frame = cap.read()
-                if not ret:continue
+                if not ret:
+		    continue
                 frame = cv2.resize(frame, (640, 480))
                 color = detect_traffic_light_color(frame)
+                if color == 'red':
+                    while color == 'red':
+	                ret, frame = cap.read()
+        	        if not ret:break
+                	frame = cv2.resize(frame, (640, 480))
+                    	color = detect_traffic_light_color(frame)
 
+                     	# Loop every 0.1 seconds until the traffic light is green
+                    	speed_pid_value = 0
 
-                while color == 'red':
-                        
-                    ret, frame = cap.read()
-                    if not ret:break
-                    frame = cv2.resize(frame, (640, 480))
-                    color = detect_traffic_light_color(frame)
-
-                        # Loop every 0.1 seconds until the traffic light is green 
-                    speed_pid_value = 0
-
-                    speed_pub.publish(map(0,-1000,1000,100,-100))
-                    rospy.loginfo(f"{color} traffic light detected: Stopping rover")
-                    
-                    sleep(0.2)
+                    	speed_pub.publish(map(0,-1000,1000,100,-100))
+                    	rospy.loginfo(f"{color} traffic light detected: Stopping rover")
+                    	sleep(0.2)
                 rospy.loginfo(f"{color} traffic light detected: Starting rover")
-
-                counter += 1
-
                 cap.release()
                 cv2.destroyAllWindows()
                 # object detection code
-		object_detected = ultrasound_reading()
-                if object_detected < 5: #if we have an object closer than 5 cm, stop and wait for object to move
-                    while ultrasound_reading() < 5:
-                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                        speed_pid_value = 0
-                        speed_pub.publish(map(0,-1000,1000,100,-100))
-                        sleep(0.2)
+
+                #if we have an object closer than 5 cm, stop and wait for object to move
+                while ultrasound_reading() < 150:
+               	   rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                   speed_pid_value = 0
+                   speed_pub.publish(map(0,-1000,1000,100,-100))
+                   sleep(0.2)
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
