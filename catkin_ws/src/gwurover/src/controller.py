@@ -192,7 +192,8 @@ def algo():
                 if color == 'red':
                     while color == 'red':
                         ret, frame = cap.read()
-                        if not ret:break
+                        if not ret:
+                            print("no ret")
                         frame = cv2.resize(frame, (640, 480))
                         color = detect_traffic_light_color(frame)
                         # Loop every 0.1 seconds until the traffic light is green
@@ -205,17 +206,17 @@ def algo():
                 cv2.destroyAllWindows()
                 # object detection code
 
-                #if we have an object closer than 5 cm, stop and wait for object to move
-                # object_detected = ultrasound_reading()
-                # if object_detected < 150:
-                #     rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                #     while object_detected < 150:
-                #         rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                #         speed_pid_value = 0
-                #         speed_pub.publish(map(0,-1000,1000,100,-100))
-                #         object_detected = ultrasound_reading()
-                #         sleep(0.2)
-                # rospy.loginfo(f"object no longer detected: starting rover")
+                # if we have an object closer than 5 cm, stop and wait for object to move
+                object_detected = ultrasound_reading()
+                if object_detected < 150:
+                    rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                    while object_detected < 150:
+                        rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                        speed_pid_value = 0
+                        speed_pub.publish(map(0,-1000,1000,100,-100))
+                        object_detected = ultrasound_reading()
+                        sleep(0.2)
+                rospy.loginfo(f"object no longer detected: starting rover")
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
