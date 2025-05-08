@@ -178,13 +178,13 @@ def algo():
                 test_object_detection = False
                 # putting code here to only get called once to save resources
                 # if test_stop_sign:
-                    
-                if test_traffic_light:
+                if test_stop_sign:
                     if stop_sign_detected(frame):
                         # If stop sign is detected, we stop the rover
                         speed_pub.publish(map(0,-1000,1000,100,-100))
                         rospy.loginfo("Stop sign detected: Stopping rover")
                         sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
+                if test_traffic_light:
                     # Capture for traffic light detection
                     frame = cv2.resize(frame, (640, 480))
                     color = detect_traffic_light_color(frame)
