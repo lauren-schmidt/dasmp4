@@ -169,16 +169,16 @@ def algo():
             # Update flags detecting obstacles and stop signs/traffics light every few seconds
             # e.g.
             # if its__400_th_iteration: stop_flag = run_ultrasonic/traffioc_light
+            cap = cv2.VideoCapture(0)
+            ret, frame = cap.read()
+            if not ret:
+                print("ret failed")
             test_traffic_light = True
             test_stop_sign = False
             test_object_detection = False
             if counter % 400 == 0:
                 # putting code here to only get called once to save resources
                 if test_stop_sign:
-                    cap = cv2.VideoCapture(0)
-                    ret, frame = cap.read()
-                    if not ret:
-                        print("ret failed")
                     if stop_sign_detected(frame):
                         # If stop sign is detected, we stop the rover
                         speed_pub.publish(map(0,-1000,1000,100,-100))
