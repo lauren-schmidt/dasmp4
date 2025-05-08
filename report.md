@@ -21,11 +21,17 @@ The files that we edited for this project are:
             - The `algo()` function checks for stop signs every 400 iterations, and if a stop sign is detected, it sets the rover speed to 0, and pauses for 3 seconds before resuming navigation.
         - `detect_traffic_light_color()`: Loads the Haar cascade classifier for traffic light detection, captures frames from the camera, and uses the `cv2` library to detect traffic lights in the frame. It then determines the color of the detected traffic light by analyzing the pixels within the bounding box of the detected light. If a red light is detected, it returns `red`, otherwise it returns `green` if the light is green, and otherwise `unknown`.
             - The `algo()` function checks for traffic lights every 400 iterations, and if a red light is detected, it sets the rover speed to 0, and pauses until a green light is detected before resuming navigation.
-        - `ultrasound_reading()`: **TODO**
+        - `ultrasound_reading()`:
+            - this function uses code from lab 2 to detect the distance of objects near our rover. Once an object is detected. The rover pauses until the obstacle is moved from 
 - `PID.py`: This file contains the PID controller implementation. We used this to help control the rover's speed and direction as it navigates towards waypoints. The PID controller helps to minimize the error between the desired position and the actual position of the rover. Our implementation includes:
     - Initializing PID parameters (Kp, Ki, Kd) for both speed and steering control.
     - Updating the PID controller in the `algo()` function to adjust the rover's speed and direction based on the error between the current position and the target waypoint.
-- `figure8.csv`: **TODO**
+- `figure8.csv`:
+    - program in `waypoints.py` that uses the paramteric equation for a figure 8 and generates waypoints from points that fall on the figure 8.
+  
+<img width="721" alt="Screenshot 2025-05-07 at 2 04 39 PM" src="https://github.com/user-attachments/assets/2ffaa43c-04aa-4e21-910e-cbb9aa05f64e" />
+
+<img width="1442" alt="Screenshot 2025-05-07 at 2 21 44 PM" src="https://github.com/user-attachments/assets/7b94f0a2-3b5a-45a3-a16c-65ef456536c2" />
 
 ## How to Run the Code 
 1. Make sure the rover is powered on and all components are connected properly
@@ -47,9 +53,10 @@ The files that we edited for this project are:
 ## Assumptions & Limitations 
 #### Assumptions
 - The rover is assumed to be in an open area with enough space to navigate.
-- Assume all IMU sensor data is accurate and reliable (it is sometimes noisy). 
+- Assume all IMU sensor data is accurate and reliable (it is sometimes noisy).
 
 #### Limitations
 - The rover can detect stop signs and traffic lights *within a certain range*, but may not be able to detect them in conditions with poor lighting or from far distances.
-- We encountered issues with the hardware for this project, specifically with connecting to the SLAB Router and the radio-controller. We were frequently booted from the network, which caused delays in testing and debugging code. There was also a limited number of available radio-controllers, and our rover was only able to connect to one of them. 
+- We encountered issues with the hardware for this project, specifically with connecting to the SLAB Router and the radio-controller. We were frequently booted from the network, which caused delays in testing and debugging code. There was also a limited number of available radio-controllers, and our rover was only able to connect to one of them.
+- object detection and 
 
