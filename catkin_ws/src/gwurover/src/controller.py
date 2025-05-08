@@ -103,36 +103,36 @@ def detect_traffic_light_color(frame):
     for x, y, w, h in traffic_lights:
         roi = frame[y:y+h, x:x+w]
         
-        hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-        # Define color ranges for red, green, and orange
-        # Lower red range
-        red_lower1 = np.array([0, 160, 160])
-        red_upper1 = np.array([5, 255, 255])
+    hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+    # Define color ranges for red, green, and orange
+    # Lower red range
+    red_lower1 = np.array([0, 160, 160])
+    red_upper1 = np.array([5, 255, 255])
 
-        # Upper red range
-        red_lower2 = np.array([175, 160, 160])
-        red_upper2 = np.array([180, 255, 255])
+    # Upper red range
+    red_lower2 = np.array([175, 160, 160])
+    red_upper2 = np.array([180, 255, 255])
 
-        # Yellow range
-        yellow_lower, yellow_upper = np.array([15, 100, 100]), np.array([35, 255, 255])
+    # Yellow range
+    yellow_lower, yellow_upper = np.array([15, 100, 100]), np.array([35, 255, 255])
 
-        # Green range
-        green_lower = np.array([36, 80, 80])
-        green_upper = np.array([85, 255, 255])
+    # Green range
+    green_lower = np.array([36, 80, 80])
+    green_upper = np.array([85, 255, 255])
 
-        # Create masks for each color
-        mask1 = cv2.inRange(hsv, red_lower1, red_upper1)
-        mask2 = cv2.inRange(hsv, red_lower2, red_upper2)
-        red_mask = cv2.bitwise_or(mask1, mask2)
-        green_mask = cv2.inRange(hsv, green_lower, green_upper)
-        yellow_mask = cv2.inRange(hsv, yellow_lower, yellow_upper)
-        # Check for the presence of each color
-        if cv2.countNonZero(red_mask) > 0:
-            return 'red'
-        elif cv2.countNonZero(yellow_mask) > 0:
-            return 'yellow'
-        elif cv2.countNonZero(green_mask) > 0:
-            return 'green'
+    # Create masks for each color
+    mask1 = cv2.inRange(hsv, red_lower1, red_upper1)
+    mask2 = cv2.inRange(hsv, red_lower2, red_upper2)
+    red_mask = cv2.bitwise_or(mask1, mask2)
+    green_mask = cv2.inRange(hsv, green_lower, green_upper)
+    yellow_mask = cv2.inRange(hsv, yellow_lower, yellow_upper)
+    # Check for the presence of each color
+    if cv2.countNonZero(red_mask) > 0:
+        return 'red'
+    elif cv2.countNonZero(yellow_mask) > 0:
+        return 'yellow'
+    elif cv2.countNonZero(green_mask) > 0:
+        return 'green'
     return
 
 def ultrasound_reading():
