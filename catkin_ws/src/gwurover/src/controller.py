@@ -203,17 +203,18 @@ def algo():
                 # object detection code
                     cap.release()
                     cv2.destroyAllWindows()
-                # if we have an object closer than 15 cm, stop and wait for object to move
-                object_detected = ultrasound_reading()
-                if object_detected < 15:
-                    rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                    while object_detected < 15:
+                else:
+                    # if we have an object closer than 15 cm, stop and wait for object to move
+                    object_detected = ultrasound_reading()
+                    if object_detected < 15:
                         rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
-                        speed_pid_value = 0
-                        speed_pub.publish(map(0,-1000,1000,100,-100))
-                        object_detected = ultrasound_reading()
-                        sleep(0.2)
-                rospy.loginfo(f"object no longer detected: starting rover")
+                        while object_detected < 15:
+                            rospy.loginfo(f"object detected {object_detected} cm away: Stopping rover")
+                            speed_pid_value = 0
+                            speed_pub.publish(map(0,-1000,1000,100,-100))
+                            object_detected = ultrasound_reading()
+                            sleep(0.2)
+                    rospy.loginfo(f"object no longer detected: starting rover")
                 
             counter += 1
 
