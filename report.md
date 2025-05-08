@@ -22,7 +22,7 @@ The files that we edited for this project are:
         - `detect_traffic_light_color()`: Loads the Haar cascade classifier for traffic light detection, captures frames from the camera, and uses the `cv2` library to detect traffic lights in the frame. It then determines the color of the detected traffic light by analyzing the pixels within the bounding box of the detected light. If a red light is detected, it returns `red`, otherwise it returns `green` if the light is green, and otherwise `unknown`.
             - The `algo()` function checks for traffic lights every 400 iterations, and if a red light is detected, it sets the rover speed to 0, and pauses until a green light is detected before resuming navigation.
         - `ultrasound_reading()`:
-            - this function uses code from lab 2 to detect the distance of objects near our rover. Once an object is detected. The rover pauses until the obstacle is moved from 
+            - this function uses code from lab 2 to detect the distance of objects near our rover. Once an object is detected. The rover pauses until the obstacle is moved from it and resumes movement
 - `PID.py`: This file contains the PID controller implementation. We used this to help control the rover's speed and direction as it navigates towards waypoints. The PID controller helps to minimize the error between the desired position and the actual position of the rover. Our implementation includes:
     - Initializing PID parameters (Kp, Ki, Kd) for both speed and steering control.
     - Updating the PID controller in the `algo()` function to adjust the rover's speed and direction based on the error between the current position and the target waypoint.
@@ -54,9 +54,11 @@ The files that we edited for this project are:
 #### Assumptions
 - The rover is assumed to be in an open area with enough space to navigate.
 - Assume all IMU sensor data is accurate and reliable (it is sometimes noisy).
+- all components are being tested seperately.
 
 #### Limitations
 - The rover can detect stop signs and traffic lights *within a certain range*, but may not be able to detect them in conditions with poor lighting or from far distances.
 - We encountered issues with the hardware for this project, specifically with connecting to the SLAB Router and the radio-controller. We were frequently booted from the network, which caused delays in testing and debugging code. There was also a limited number of available radio-controllers, and our rover was only able to connect to one of them.
-- object detection and 
+- object detection and stop light cannot work together. When a stop light or stop sign is being shown the ultrasonic sensor thinks that the signal is an obect and stops the rover.
+- Color masking sometimes inconsistent
 
