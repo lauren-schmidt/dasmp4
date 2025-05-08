@@ -198,7 +198,7 @@ def algo():
                         speed_pub.publish(map(0,-1000,1000,100,-100))
                         rospy.loginfo(f"{color} traffic light detected: Stopping rover")
                         sleep(0.2)
-                        rospy.loginfo(f"{color} traffic light detected: Starting rover")
+                    rospy.loginfo(f"{color} traffic light detected: Starting rover")
                 # object detection code
                 if test_object_detection:
                     # if we have an object closer than 100 cm, stop and wait for object to move
