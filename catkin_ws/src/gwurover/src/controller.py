@@ -201,7 +201,8 @@ def algo():
                             sleep(0.2)
                         rospy.loginfo(f"{color} traffic light detected: Starting rover")
                 # object detection code
-                
+                    cap.release()
+                    cv2.destroyAllWindows()
                 # if we have an object closer than 15 cm, stop and wait for object to move
                 object_detected = ultrasound_reading()
                 if object_detected < 15:
@@ -214,8 +215,6 @@ def algo():
                         sleep(0.2)
                 rospy.loginfo(f"object no longer detected: starting rover")
                 
-                cap.release()
-                cv2.destroyAllWindows()
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
