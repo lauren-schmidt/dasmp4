@@ -169,14 +169,14 @@ def algo():
             # Update flags detecting obstacles and stop signs/traffics light every few seconds
             # e.g.
             # if its__400_th_iteration: stop_flag = run_ultrasonic/traffioc_light
-            cap = cv2.VideoCapture(0)
-            ret, frame = cap.read()
-            if not ret:
-                print("ret failed")
-            test_traffic_light = True
-            test_stop_sign = False
-            test_object_detection = False
             if counter % 400 == 0:
+                cap = cv2.VideoCapture(0)
+                ret, frame = cap.read()
+                if not ret:
+                    print("ret failed")
+                test_traffic_light = True
+                test_stop_sign = False
+                test_object_detection = False
                 # putting code here to only get called once to save resources
                 if test_stop_sign:
                     if stop_sign_detected(frame):
@@ -184,8 +184,6 @@ def algo():
                         speed_pub.publish(map(0,-1000,1000,100,-100))
                         rospy.loginfo("Stop sign detected: Stopping rover")
                         sleep(3) # Sleep for 3 seconds to simulate stopping at the stop sign
-                        cap.release()
-                        cv2.destroyAllWindows()
                 if test_traffic_light:
                     # Capture for traffic light detection
                     frame = cv2.resize(frame, (640, 480))
@@ -202,9 +200,6 @@ def algo():
                             rospy.loginfo(f"{color} traffic light detected: Stopping rover")
                             sleep(0.2)
                         rospy.loginfo(f"{color} traffic light detected: Starting rover")
-            
-                        cap.release()
-                        cv2.destroyAllWindows()
                 # object detection code
                 if test_object_detection:
                     # if we have an object closer than 100 cm, stop and wait for object to move
@@ -218,7 +213,8 @@ def algo():
                             object_detected = ultrasound_reading()
                             sleep(0.2)
                     rospy.loginfo(f"object no longer detected: starting rover")
-                
+            cap.release()
+            cv2.destroyAllWindows()
             counter += 1
 
             # MP4-TODO: You can add a flag to check for the flag and skip the iteration if it's true
